@@ -1,6 +1,6 @@
 ﻿using PaymentGateway.Api.Models.Responses;
 
-namespace PaymentGateway.Api.Repository;
+namespace PaymentGateway.Api.Repositories;
 
 public interface IPaymentsRepository
 {
@@ -13,16 +13,10 @@ public interface IPaymentsRepository
 // Maybe look at how hard this is to add
 public class PaymentsRepository : IPaymentsRepository
 {
-    // TODO this should be a different model - not the response!
+    // this should probably be a different model - eg PaymentEntity - not the response object
     private readonly List<PostPaymentResponse> _payments = [];
     
-    public void Add(PostPaymentResponse payment)
-    {
-        _payments.Add(payment);
-    }
+    public void Add(PostPaymentResponse payment) => _payments.Add(payment);
 
-    public PostPaymentResponse? Get(Guid id)
-    {
-        return _payments.FirstOrDefault(p => p.Id == id);
-    }
+    public PostPaymentResponse? Get(Guid id) => _payments.FirstOrDefault(p => p.Id == id);
 }

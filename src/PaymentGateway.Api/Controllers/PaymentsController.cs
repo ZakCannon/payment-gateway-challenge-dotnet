@@ -20,8 +20,14 @@ public class PaymentsController(
     }
 
     [HttpPost("")]
-    public async Task<ActionResult<PostPaymentResponse>> PostPaymentAsync([FromBody] PostPaymentRequest req)
+    public async Task<ActionResult<PostPaymentResponse>> PostPaymentAsync([FromBody] ProcessPaymentRequest req)
     {
-        throw new NotImplementedException();
+        var result = await paymentsService.ProcessNew(req);
+        if (result.Issues is not null)
+        {
+            return new BadRequestObjectResult(result.Issues);
+        }
+
+        return new OkObjectResult(result.Result);
     }
 }

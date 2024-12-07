@@ -6,15 +6,16 @@ using Microsoft.Extensions.DependencyInjection;
 using PaymentGateway.Api.Controllers;
 using PaymentGateway.Api.Models.Enums;
 using PaymentGateway.Api.Models.Responses;
-using PaymentGateway.Api.Repository;
+using PaymentGateway.Api.Repositories;
 
 namespace PaymentGateway.Api.Tests;
 
+[TestFixture]
 public class PaymentsControllerTests
 {
     private readonly Random _random = new();
     
-    [Fact]
+    [Test]
     public async Task RetrievesAPaymentSuccessfully()
     {
         // Arrange
@@ -41,11 +42,11 @@ public class PaymentsControllerTests
         var paymentResponse = await response.Content.ReadFromJsonAsync<PostPaymentResponse>();
         
         // Assert
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.NotNull(paymentResponse);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        paymentResponse.Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public async Task Returns404IfPaymentNotFound()
     {
         // Arrange
@@ -56,6 +57,6 @@ public class PaymentsControllerTests
         var response = await client.GetAsync($"/api/Payments/{Guid.NewGuid()}");
         
         // Assert
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 }
