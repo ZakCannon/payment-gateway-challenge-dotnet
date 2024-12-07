@@ -4,8 +4,9 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 
 using PaymentGateway.Api.Controllers;
+using PaymentGateway.Api.Models.Enums;
 using PaymentGateway.Api.Models.Responses;
-using PaymentGateway.Api.Services;
+using PaymentGateway.Api.Repository;
 
 namespace PaymentGateway.Api.Tests;
 
@@ -17,15 +18,14 @@ public class PaymentsControllerTests
     public async Task RetrievesAPaymentSuccessfully()
     {
         // Arrange
-        var payment = new PostPaymentResponse
-        {
-            Id = Guid.NewGuid(),
-            ExpiryYear = _random.Next(2023, 2030),
-            ExpiryMonth = _random.Next(1, 12),
-            Amount = _random.Next(1, 10000),
-            CardNumberLastFour = _random.Next(1111, 9999),
-            Currency = "GBP"
-        };
+        var payment = new PostPaymentResponse(
+            Id: Guid.NewGuid(),
+            Status: PaymentStatus.Authorized,
+            ExpiryYear: _random.Next(2023, 2030),
+            ExpiryMonth: _random.Next(1, 12),
+            Amount: _random.Next(1, 10000),
+            CardNumberLastFour: _random.Next(1111, 9999),
+            Currency: "GBP");
 
         var paymentsRepository = new PaymentsRepository();
         paymentsRepository.Add(payment);
