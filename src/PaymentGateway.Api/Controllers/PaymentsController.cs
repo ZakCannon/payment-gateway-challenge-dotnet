@@ -16,7 +16,9 @@ public class PaymentsController(
     {
         var payment = paymentsService.Get(id);
 
-        return new OkObjectResult(payment);
+        return payment is null
+            ? new NotFoundResult()
+            : new OkObjectResult(payment);
     }
 
     [HttpPost("")]
