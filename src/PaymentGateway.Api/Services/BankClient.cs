@@ -1,4 +1,8 @@
-﻿using PaymentGateway.Api.Models.Bank;
+﻿using System.Text;
+using System.Text.Json;
+
+using PaymentGateway.Api.Config;
+using PaymentGateway.Api.Models.Bank;
 
 namespace PaymentGateway.Api.Services;
 
@@ -9,13 +13,24 @@ public interface IBankClient
     Task<BankAuthorisationResult> Authorise(BankAuthorisationRequest req);
 }
 
-public class BankClient : IBankClient
+public class BankClient(
+    IHttpClientFactory httpClientFactory,
+    PaymentServiceConfig config) : IBankClient
 {
-    // Could probably use some logging?
     public async Task<BankAuthorisationResult> Authorise(BankAuthorisationRequest req)
     {
-        // TODO Use a HTTP client factory somehow - google it!
-        await Task.CompletedTask;
-        return new BankAuthorisationResult(true, Guid.NewGuid());
+        var client = httpClientFactory.CreateClient();
+        // TODO this isn't working!
+        var rawResponse = await client.PostAsync(
+            $"{config.BankApiBaseUrl}/payments",
+            new StringContent(JsonSerializer.Serialize(req), Encoding.UTF8, "application/json"));
+
+        var response = await rawResponse.Content.ReadFromJsonAsync<BankAuthorisationResult>();
+        if (response is null)
+        {
+            throw new Exception("Bank API response is null");
+        }
+        
+        return response;
     }
 }

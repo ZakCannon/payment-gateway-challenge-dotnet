@@ -14,7 +14,7 @@ public record ProcessPaymentRequest(
     public BankAuthorisationRequest ToBankAuthorisationRequest()
         => new(
             CardNumber: CardNumber,
-            ExpiryDate: $"{ExpiryMonth}/{ExpiryYear}",
+            ExpiryDate: $"{ExpiryMonth:D2}/{ExpiryYear}",
             CurrencyCode: Currency,
             Amount: Amount,
             Cvv: Cvv);

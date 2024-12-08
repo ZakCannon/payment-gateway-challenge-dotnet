@@ -3,10 +3,14 @@ using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 
+using Moq;
+
+using PaymentGateway.Api.Config;
 using PaymentGateway.Api.Controllers;
 using PaymentGateway.Api.Models.Enums;
 using PaymentGateway.Api.Models.Responses;
 using PaymentGateway.Api.Repositories;
+using PaymentGateway.Api.Services;
 
 namespace PaymentGateway.Api.Tests;
 
@@ -14,6 +18,7 @@ namespace PaymentGateway.Api.Tests;
 public class PaymentsControllerTests
 {
     private readonly Random _random = new();
+    private readonly Mock<IBankClient> _bankClient = new();
     
     [Test]
     public async Task RetrievesAPaymentSuccessfully()
@@ -30,12 +35,7 @@ public class PaymentsControllerTests
 
         var paymentsRepository = new PaymentsRepository();
         paymentsRepository.Add(payment);
-
-        var webApplicationFactory = new WebApplicationFactory<PaymentsController>();
-        var client = webApplicationFactory.WithWebHostBuilder(builder =>
-            builder.ConfigureServices(services => ((ServiceCollection)services)
-                .AddSingleton(paymentsRepository)))
-            .CreateClient();
+        var client = BuildClient(paymentsRepository);
 
         // Act
         var response = await client.GetAsync($"/api/Payments/{payment.Id}");
@@ -58,5 +58,19 @@ public class PaymentsControllerTests
         
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    private static HttpClient BuildClient(PaymentsRepository paymentsRepository)
+    {
+        var webApplicationFactory = new WebApplicationFactory<PaymentsController>();
+        return webApplicationFactory.WithWebHostBuilder(builder =>
+            builder
+                .ConfigureServices(services => ((ServiceCollection)services)
+                .AddSingleton(paymentsRepository)
+                .AddTransient<IBankClient, BankClient>()
+                .AddTransient<IPaymentsService, PaymentsService>()
+                .AddTransient<IPaymentValidationService, PaymentValidationService>())
+            )
+            .CreateClient();
     }
 }
