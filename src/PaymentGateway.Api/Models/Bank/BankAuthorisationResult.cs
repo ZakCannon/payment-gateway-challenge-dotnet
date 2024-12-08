@@ -3,6 +3,7 @@
 namespace PaymentGateway.Api.Models.Bank;
 
 public record BankAuthorisationResult(
+    [property: JsonPropertyName("authorized")]
     bool Authorised,
-    [property: JsonPropertyName("authorisation_code")]
+    [property: JsonPropertyName("authorization_code")]
     Guid AuthorisationCode);

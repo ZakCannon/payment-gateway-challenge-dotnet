@@ -20,12 +20,12 @@ public class BankClient(
     public async Task<BankAuthorisationResult> Authorise(BankAuthorisationRequest req)
     {
         var client = httpClientFactory.CreateClient();
-        // TODO this isn't working!
         var rawResponse = await client.PostAsync(
             $"{config.BankApiBaseUrl}/payments",
             new StringContent(JsonSerializer.Serialize(req), Encoding.UTF8, "application/json"));
 
-        var response = await rawResponse.Content.ReadFromJsonAsync<BankAuthorisationResult>();
+        var asString = await rawResponse.Content.ReadAsStringAsync();
+        var response = JsonSerializer.Deserialize<BankAuthorisationResult>(asString);
         if (response is null)
         {
             throw new Exception("Bank API response is null");
