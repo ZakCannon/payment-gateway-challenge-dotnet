@@ -4,6 +4,7 @@ using PaymentGateway.Api.Services;
 
 namespace PaymentGateway.Api.Tests.Services;
 
+// Hard to annotate these with arrange/act/assert. The arrange is in the test case, act is the call, and assert is in the return
 [TestFixture]
 public class PaymentValidationServiceTests
 {

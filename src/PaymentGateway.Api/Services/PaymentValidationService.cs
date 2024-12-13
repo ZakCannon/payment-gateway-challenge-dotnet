@@ -9,6 +9,8 @@ public interface IPaymentValidationService
     List<ValidationIssue> ValidateRequest(ProcessPaymentRequest request);
 }
 
+// If there's much more than this, I'd consider splitting into more interfaces - for testability and readability.
+// For only a few fields, and simple logic, this is probably fine.
 public class PaymentValidationService : IPaymentValidationService
 {
     public List<ValidationIssue> ValidateRequest(ProcessPaymentRequest request)

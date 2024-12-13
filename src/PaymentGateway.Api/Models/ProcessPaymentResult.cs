@@ -3,5 +3,5 @@
 namespace PaymentGateway.Api.Models;
 
 public record ProcessPaymentResult(
-    PostPaymentResponse? Result,
+    PostPaymentResponse Result,
     List<ValidationIssue>? Issues);

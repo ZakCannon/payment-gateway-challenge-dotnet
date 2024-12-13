@@ -25,24 +25,19 @@ public class PaymentsService(
         var validationIssues = validationService.ValidateRequest(req);
         if (validationIssues.Any())
         {
-            return new ProcessPaymentResult(Result: null, Issues: validationIssues);
+            var failedResult = PostPaymentResponse.FromPaymentRequest(req, PaymentStatus.Rejected);
+            paymentsRepository.Add(failedResult);
+            return new ProcessPaymentResult(Result: failedResult, Issues: validationIssues);
         }
 
         var authRequest = req.ToBankAuthorisationRequest();
         var authResult = await bankClient.Authorise(authRequest);
 
-        var result = new PostPaymentResponse(
-            Id: Guid.NewGuid(),
-            // TODO work out what Declined is
-            Status: authResult.Authorised ? PaymentStatus.Authorized : PaymentStatus.Rejected,
-            CardNumberLastFour: int.Parse(req.CardNumber.Substring(req.CardNumber.Length - 4)),
-            ExpiryMonth: req.ExpiryMonth,
-            ExpiryYear: req.ExpiryYear,
-            Currency: req.Currency,
-            Amount: req.Amount);
+        var status = authResult.Authorised ? PaymentStatus.Authorized : PaymentStatus.Declined;
+        var successfulResult = PostPaymentResponse.FromPaymentRequest(req, status);
 
-        paymentsRepository.Add(result);
+        paymentsRepository.Add(successfulResult);
         
-        return new ProcessPaymentResult(Result: result, Issues: null);
+        return new ProcessPaymentResult(Result: successfulResult, Issues: null);
     }
 }

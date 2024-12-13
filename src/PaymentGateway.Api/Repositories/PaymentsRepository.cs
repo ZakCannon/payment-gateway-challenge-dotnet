@@ -10,10 +10,10 @@ public interface IPaymentsRepository
 }
 
 // Here I'd normally use a DbContext from EF core - list will do for now
-// Maybe look at how hard this is to add
+// Maybe look at how hard this is to add (I did, not _too_ hard, but no reason to right now)
 public class PaymentsRepository : IPaymentsRepository
 {
-    // this should probably be a different model - eg PaymentEntity - not the response object
+    // this should probably be a different model - eg an EF Core entity - not the response object, but that's all we need for now.
     private readonly List<PostPaymentResponse> _payments = [];
     
     public void Add(PostPaymentResponse payment) => _payments.Add(payment);

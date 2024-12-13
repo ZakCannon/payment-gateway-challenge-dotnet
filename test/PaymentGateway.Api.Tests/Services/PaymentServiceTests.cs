@@ -33,19 +33,23 @@ public class PaymentServiceTests
     [Test]
     public void GivenValidId_Get_ShouldReturnPayment()
     {
+        // Arrange
         var idToFetch = Guid.NewGuid();
         _paymentsRepository
             .Setup(r => r.Get(idToFetch))
             .Returns(StaticTestData.BlankPostResponse);
 
+        // Act
         var result = _paymentsService.Get(idToFetch);
 
+        // Assert
         result.Should().Be(StaticTestData.BlankPostResponse);
     }
 
     [Test]
     public async Task GivenValidAuthorisedRequest_ProcessNew_ShouldAddToRepositoryAndReturn()
     {
+        // Arrange
         var requestToAdd = BasicRequest;
         _validationService
             .Setup(s => s.ValidateRequest(requestToAdd))
@@ -54,8 +58,10 @@ public class PaymentServiceTests
             .Setup(c => c.Authorise(requestToAdd.ToBankAuthorisationRequest()))
             .ReturnsAsync(new BankAuthorisationResult(true, Guid.NewGuid()));
 
+        // Act
         var result = await _paymentsService.ProcessNew(requestToAdd);
 
+        // Assert
         result.Result.Should().NotBeNull();
         VerifyRequestResponseBasicFieldsMatch(requestToAdd, result.Result);
         result.Result.Status.Should().Be(PaymentStatus.Authorized);
@@ -67,27 +73,35 @@ public class PaymentServiceTests
     }
 
     [Test]
-    public async Task GivenFailingValidation_ProcessNew_ShouldNotContactBankOrRepositoryAndReturnIssues()
+    public async Task GivenFailingValidation_ProcessNew_ShouldNotContactBankAndReturnIssuesWithRejectedPayment()
     {
+        // Arrange
+        var requestToAdd = BasicRequest;
         var blankValidationIssue = new ValidationIssue("", "");
         _validationService
-            .Setup(s => s.ValidateRequest(BasicRequest))
+            .Setup(s => s.ValidateRequest(requestToAdd))
             .Returns([blankValidationIssue]);
 
-        var result = await _paymentsService.ProcessNew(BasicRequest);
+        // Act
+        var result = await _paymentsService.ProcessNew(requestToAdd);
 
-        result.Result.Should().BeNull();
+        // Assert
+        result.Result.Status.Should().Be(PaymentStatus.Rejected);
+        VerifyRequestResponseBasicFieldsMatch(requestToAdd, result.Result);
         result.Issues.Should().NotBeNull();
         result.Issues.Count.Should().Be(1);
         result.Issues.Single().Should().Be(blankValidationIssue);
 
         _bankClient.VerifyNoOtherCalls();
-        _paymentsRepository.VerifyNoOtherCalls();
+        _paymentsRepository
+            .Verify(r => r.Add(
+                It.Is<PostPaymentResponse>(res => res.Id == result.Result.Id)));
     }
 
     [Test]
-    public async Task GivenBankRejecting_ProcessNew_ShouldReturnRejectedPayment()
+    public async Task GivenBankRejecting_ProcessNew_ShouldReturnDeclinedPayment()
     {
+        // Arrange
         var requestToAdd = BasicRequest;
         _validationService
             .Setup(s => s.ValidateRequest(requestToAdd))
@@ -96,11 +110,13 @@ public class PaymentServiceTests
             .Setup(c => c.Authorise(requestToAdd.ToBankAuthorisationRequest()))
             .ReturnsAsync(new BankAuthorisationResult(false, Guid.NewGuid()));
 
+        // Act
         var result = await _paymentsService.ProcessNew(requestToAdd);
 
+        // Assert
         result.Result.Should().NotBeNull();
         VerifyRequestResponseBasicFieldsMatch(requestToAdd, result.Result);
-        result.Result.Status.Should().Be(PaymentStatus.Rejected);
+        result.Result.Status.Should().Be(PaymentStatus.Declined);
         result.Issues.Should().BeNull();
 
         _paymentsRepository

@@ -22,7 +22,11 @@ public class BankClient(
         var client = httpClientFactory.CreateClient();
         var rawResponse = await client.PostAsync(
             $"{config.BankApiBaseUrl}/payments",
-            new StringContent(JsonSerializer.Serialize(req), Encoding.UTF8, "application/json"));
+            new StringContent(
+                JsonSerializer.Serialize(req),
+                Encoding.UTF8, 
+                // I'm surprised there's not an Enum for this!
+                "application/json"));
 
         var asString = await rawResponse.Content.ReadAsStringAsync();
         var response = JsonSerializer.Deserialize<BankAuthorisationResult>(asString);
