@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Net;
+using System.Text;
 using System.Text.Json;
 
 using PaymentGateway.Api.Config;
@@ -28,13 +29,15 @@ public class BankClient(
                 // I'm surprised there's not an Enum for this!
                 "application/json"));
 
+        if (rawResponse.StatusCode != HttpStatusCode.OK)
+        {
+            // In a real service this exception might need sanitising, especially if it gets passed to a user
+            throw new Exception("Passed a request which the simulator does not support. Full response was: " + await rawResponse.Content.ReadAsStringAsync());
+        }
+
         var asString = await rawResponse.Content.ReadAsStringAsync();
         var response = JsonSerializer.Deserialize<BankAuthorisationResult>(asString);
-        if (response is null)
-        {
-            throw new Exception("Bank API response is null");
-        }
         
-        return response;
+        return response!;
     }
 }

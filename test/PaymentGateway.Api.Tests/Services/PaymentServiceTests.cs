@@ -56,7 +56,7 @@ public class PaymentServiceTests
             .Returns([]);
         _bankClient
             .Setup(c => c.Authorise(requestToAdd.ToBankAuthorisationRequest()))
-            .ReturnsAsync(new BankAuthorisationResult(true, Guid.NewGuid()));
+            .ReturnsAsync(new BankAuthorisationResult(true, Guid.NewGuid().ToString()));
 
         // Act
         var result = await _paymentsService.ProcessNew(requestToAdd);
@@ -108,7 +108,7 @@ public class PaymentServiceTests
             .Returns([]);
         _bankClient
             .Setup(c => c.Authorise(requestToAdd.ToBankAuthorisationRequest()))
-            .ReturnsAsync(new BankAuthorisationResult(false, Guid.NewGuid()));
+            .ReturnsAsync(new BankAuthorisationResult(false, Guid.NewGuid().ToString()));
 
         // Act
         var result = await _paymentsService.ProcessNew(requestToAdd);
